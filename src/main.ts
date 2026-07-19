@@ -12,7 +12,7 @@ const port = Number(
     process.env.PORT ??
     3000,
 );
-const shareStore = await KeyValueStore.open('roast-my-stack-shares');
+const shareStore = await KeyValueStore.open();
 const server = createServer(
   {},
   {
