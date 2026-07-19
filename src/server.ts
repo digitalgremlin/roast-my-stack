@@ -23,6 +23,13 @@ export interface PipelineDependencies {
   roast(detections: Detection[], score: number, band: Band): Promise<RoastResult>;
 }
 
+export interface ServerOptions {
+  publishShareResult?: (
+    id: string,
+    result: RoastResult,
+  ) => Promise<{ shareUrl: string; cardUrl: string }>;
+}
+
 const DEFAULT_DEPENDENCIES: PipelineDependencies = {
   fetchTarget,
   detectStack,
@@ -95,6 +102,7 @@ function escapeHtml(value: string): string {
 
 export function createServer(
   overrides: Partial<PipelineDependencies> = {},
+  options: ServerOptions = {},
 ): http.Server {
   const dependencies = { ...DEFAULT_DEPENDENCIES, ...overrides };
   const sharedResults = new Map<string, RoastResult>();
@@ -232,7 +240,19 @@ export function createServer(
           const score = dependencies.scoreStack(detections);
           const result = await dependencies.roast(detections, score.score, score.band);
           const shareId = rememberResult(result);
-          sendJson(response, 200, { ...result, shareId });
+          let shareUrl: string | undefined;
+          if (options.publishShareResult) {
+            try {
+              ({ shareUrl } = await options.publishShareResult(shareId, result));
+            } catch (error) {
+              console.error('Public share publish failed', error);
+            }
+          }
+          sendJson(response, 200, {
+            ...result,
+            shareId,
+            ...(shareUrl ? { shareUrl } : {}),
+          });
         } catch (error) {
           if (
             error instanceof SyntaxError ||

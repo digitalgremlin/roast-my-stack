@@ -1,6 +1,7 @@
-import { Actor } from 'apify';
+import { Actor, KeyValueStore } from 'apify';
 
 import { createServer } from './server.js';
+import { publishShareResult } from './share.js';
 
 await Actor.init();
 
@@ -11,7 +12,13 @@ const port = Number(
     process.env.PORT ??
     3000,
 );
-const server = createServer();
+const shareStore = await KeyValueStore.open('roast-my-stack-shares');
+const server = createServer(
+  {},
+  {
+    publishShareResult: (id, result) => publishShareResult(shareStore, id, result),
+  },
+);
 
 server.listen(port, '0.0.0.0', () => {
   console.log(`Roast My Stack listening on port ${port}`);

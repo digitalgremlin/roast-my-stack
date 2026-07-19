@@ -16,8 +16,16 @@ afterEach(async () => {
   );
 });
 
-async function startServer(dependencies?: Partial<PipelineDependencies>): Promise<string> {
-  const server = createServer(dependencies);
+async function startServer(
+  dependencies?: Partial<PipelineDependencies>,
+  options?: {
+    publishShareResult?: (
+      id: string,
+      result: RoastResult,
+    ) => Promise<{ shareUrl: string; cardUrl: string }>;
+  },
+): Promise<string> {
+  const server = createServer(dependencies, options);
   servers.push(server);
 
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -61,7 +69,7 @@ describe('createServer', () => {
     expect(script).toContain('searchParams.get(\'token\')');
     expect(script).toContain("fetch(authUrl('/roast')");
     expect(script).toContain("pelican.src = authUrl(`/assets/sprites/");
-    expect(script).toContain("shareLink.href = authUrl(`/share/");
+    expect(script).toContain("shareLink.href = data.shareUrl ?? authUrl(`/share/");
   });
 
   it('serves mood sprites as PNG assets', async () => {
@@ -111,16 +119,27 @@ describe('createServer', () => {
       scoreStack: () => ({ score: 100, band: 'impressed' }),
       roast: async () => expected,
     };
-    const response = await fetch(`${await startServer(dependencies)}/roast`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ url: 'https://example.test' }),
-    });
+    const response = await fetch(
+      `${
+        await startServer(dependencies, {
+          publishShareResult: async () => ({
+            shareUrl: 'https://storage.test/share.html?signature=signed',
+            cardUrl: 'https://storage.test/card.png?signature=signed',
+          }),
+        })
+      }/roast`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ url: 'https://example.test' }),
+      },
+    );
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       ...expected,
       shareId: expect.any(String),
+      shareUrl: 'https://storage.test/share.html?signature=signed',
     });
   });
 

@@ -30,7 +30,7 @@ Enter any public HTTP(S) URL. The result includes:
 - a 0–100 score and matching Dr. Pelican mood;
 - a PG‑13 roast grounded only in detected technology;
 - three to five prioritized fixes, weighted toward security; and
-- a share link with a generated social card.
+- a public signed share link with a generated social card.
 
 ## Sample output
 
@@ -115,7 +115,9 @@ URL → fetch snapshot → original detector → deterministic score
 
 The detector currently uses 120 deliberately lean, original, high-signal,
 roast-worthy rules. Network access is isolated in `src/fetch.ts`. Shared results
-live only in a bounded in-memory cache.
+remain in a bounded in-memory cache for app routes; generated share pages and
+cards are also written to signed Apify storage URLs so social crawlers can fetch
+them without receiving an account token.
 
 Build notes and the short demo script live in
 [`docs/eval-log.md`](docs/eval-log.md) and

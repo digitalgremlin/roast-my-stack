@@ -19,7 +19,7 @@ Primary Codex session ID: `019f77e1-6086-7fc2-8edf-3d6ad0a37307`
 | 4 — roast | Engineered Dr. Gordon Pelican’s structured GPT‑5.6 prompt and post-validation. | Model fixes can drift unless technology names are enforced. | Undetected-technology fixes are dropped; 3–5 grounded fixes are required. | Green. |
 | 5 — pipeline | Connected fetch → detect → score → roast behind `POST /roast`. | Live credentials initially differed from the process environment. | A real GPT‑5.6 roast returned from Apify. | Tier 1 live. |
 | 6 — UI | Built the responsive one-page pixel interface and five mood sprites. | The requested Ideogram integration was unavailable in this environment. | Five original generated PNG sprites are bundled and mood-swapped. | Green. |
-| 7 — share card | Added bounded result caching, share pages, and PNG cards with Satori/Resvg. | Standby URLs require Apify authentication, including external crawlers. | Authenticated card and OG routes return valid PNG/meta output. | Green within Apify’s auth boundary. |
+| 7 — share card | Added bounded result caching, share pages, and PNG cards with Satori/Resvg. | Standby URLs require Apify authentication, including external crawlers. | Signed Apify storage URLs make the share page and card anonymously fetchable without exposing an account token. | Green. |
 | 9 — breadth | Expanded the fresh detector to 120 roast-worthy rules and added representative false-positive tests. | Breadth can easily become a noisy signature dump. | Coverage remains lean, evidence-based, and original. | Green. |
 | 8 — hardening | Added secret-backed actor config, current Standby port handling, dependency remediation, docs, and live QA. | Warm Standby runs retained prior images, and query-token browser loads did not authenticate subrequests automatically. | Rotating the old run put verified build 0.1.7 live; the browser preserves its existing token without storing one, and empty detection avoids GPT entirely. | Green. |
 
@@ -69,8 +69,9 @@ Apify’s direct Standby hostname requires an API token even for this public act
 The official client’s anonymous-runnable update was attempted and rejected by the
 platform schema. The app therefore preserves a token already supplied in its page
 URL for browser subrequests, while the Apify Standby tab handles authentication
-automatically. A fully anonymous social crawler cannot fetch the OG card without
-an Apify-side access-policy change; no token is embedded in OG metadata.
+automatically. Share HTML and PNG cards use storage-record signatures scoped only
+to those generated records, so social crawlers can unfurl them anonymously
+without an Apify account token in the page or metadata.
 
 ## Codex evaluation
 

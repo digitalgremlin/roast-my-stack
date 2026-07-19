@@ -55,7 +55,7 @@ function render(data) {
   roast.textContent = data.roast;
   detections.replaceChildren(...data.detections.map(renderDetection));
   fixes.replaceChildren(...data.fixes.map(renderFix));
-  shareLink.href = authUrl(`/share/${data.shareId}`);
+  shareLink.href = data.shareUrl ?? authUrl(`/share/${data.shareId}`);
   shareLink.hidden = !data.shareId;
   result.hidden = false;
   result.scrollIntoView({ behavior: 'smooth', block: 'start' });
