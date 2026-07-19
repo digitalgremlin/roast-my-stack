@@ -12,7 +12,7 @@ Builder: Codex
 | --- | --- | --- | --- | --- |
 | 0 — scaffold | Authored the TypeScript ESM actor, tests, shared contracts, and multi-stage image. | Standby must remain disabled until the ship gate. | First Apify image built and health route passed. | Green. |
 | 1 — fetch | Built a bounded, redirect-following page fetcher with HTML signal extraction and non-throwing failures. | Blocked and non-HTML sites need useful empty snapshots. | Network behavior is isolated and deterministic in tests. | Green. |
-| 2 — detector | Authored a clean-room rules engine and initial high-signal set without importing an engine or database. | The reference oracle repository was not present in this workspace. | Fixture tests cover modern, legacy, and false-positive cases. | Green; oracle diff unavailable. |
+| 2 — detector | Authored a clean-room rules engine and initial high-signal set without importing an engine or database. | The private reference oracle was absent locally and had to be run separately from `/tmp`. | Fixture tests cover modern, legacy, and false-positive cases. | Green; five-site oracle diff completed. |
 | 3 — score | Added the transparent 0–100 risk calculation and five mood bands. | Empty evidence needs a distinct, honest outcome. | Every deduction and boundary is directly testable. | Green. |
 | 4 — roast | Engineered Dr. Gordon Pelican’s structured GPT‑5.6 prompt and post-validation. | Model fixes can drift unless technology names are enforced. | Undetected-technology fixes are dropped; 3–5 grounded fixes are required. | Green. |
 | 5 — pipeline | Connected fetch → detect → score → roast behind `POST /roast`. | Live credentials initially differed from the process environment. | A real GPT‑5.6 roast returned from Apify. | Tier 1 live. |
@@ -34,6 +34,24 @@ response returned five grounded fixes.
 
 Verdict: keep Sol (`gpt-5.6`) for the submission because the product’s hook is
 the character voice. Terra is the best cost/latency candidate after Build Week.
+
+## Detector oracle diff
+
+The private `tech-stack-detector-mcp` repository was cloned to `/tmp` and run
+only as a black-box comparison oracle. No source, signatures, or data were copied
+into Roast My Stack.
+
+| Site | Shared | Roast My Stack only | Oracle only |
+| --- | --- | --- | --- |
+| nextjs.org | Next.js, Vercel | — | Node.js, React |
+| wordpress.org | WordPress | Nginx, Google Tag Manager | PHP |
+| shopify.com | Cloudflare | Shopify | — |
+| github.com | — | React, Contentful, GitHub Pages | — |
+| httpbin.org/html | — | — | — |
+
+The gaps are acceptable for the purpose-built detector: it favors directly
+observable, roast-worthy signals and does not chase parity with inferred
+relationships. All five fetches returned HTTP 200 to both implementations.
 
 ## Final validation evidence
 
