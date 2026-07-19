@@ -1,0 +1,18 @@
+{
+  "actorSpecification": 1,
+  "name": "roast-my-stack",
+  "title": "Roast My Stack",
+  "description": "Paste a URL and get a grounded tech-stack roast from Dr. Gordon Pelican.",
+  "version": "0.1",
+  "build": {
+    "dockerfile": "./Dockerfile"
+  },
+  "input": {
+    "title": "Roast My Stack",
+    "description": "No input is required. Open the Actor's web endpoint.",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {}
+  },
+  "usesStandbyMode": false
+}
