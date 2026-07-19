@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "apify": "^3.4.4"
+    "apify": "^3.4.4",
+    "cheerio": "^1.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
