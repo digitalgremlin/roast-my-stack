@@ -99,7 +99,10 @@ describe('createServer', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(expected);
+    expect(await response.json()).toEqual({
+      ...expected,
+      shareId: expect.any(String),
+    });
   });
 
   it.each([

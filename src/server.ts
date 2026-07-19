@@ -1,7 +1,9 @@
 import http, { type IncomingMessage, type ServerResponse } from 'node:http';
+import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { renderShareCard } from './card.js';
 import { detectStack } from './detect.js';
 import { fetchTarget } from './fetch.js';
 import { roast } from './roast.js';
@@ -27,6 +29,7 @@ const DEFAULT_DEPENDENCIES: PipelineDependencies = {
   scoreStack,
   roast,
 };
+const MAX_SHARED_RESULTS = 100;
 
 function sendJson(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
@@ -76,10 +79,35 @@ function validTargetUrl(value: unknown): value is string {
   }
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(
+    /[<>&'"]/g,
+    (character) =>
+      ({
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        "'": '&#39;',
+        '"': '&quot;',
+      })[character] ?? character,
+  );
+}
+
 export function createServer(
   overrides: Partial<PipelineDependencies> = {},
 ): http.Server {
   const dependencies = { ...DEFAULT_DEPENDENCIES, ...overrides };
+  const sharedResults = new Map<string, RoastResult>();
+
+  const rememberResult = (result: RoastResult): string => {
+    const id = randomBytes(9).toString('base64url');
+    sharedResults.set(id, result);
+    if (sharedResults.size > MAX_SHARED_RESULTS) {
+      const oldestId = sharedResults.keys().next().value;
+      if (oldestId) sharedResults.delete(oldestId);
+    }
+    return id;
+  };
 
   return http.createServer((request, response) => {
     if (request.method === 'GET' && request.url === '/health') {
@@ -126,6 +154,62 @@ export function createServer(
       return;
     }
 
+    const cardMatch = request.url?.match(/^\/card\/([a-zA-Z0-9_-]+)$/);
+    if (request.method === 'GET' && cardMatch?.[1]) {
+      const result = sharedResults.get(cardMatch[1]);
+      if (!result) {
+        sendJson(response, 404, { error: 'Shared result not found' });
+        return;
+      }
+
+      void renderShareCard(result)
+        .then((card) => {
+          response.writeHead(200, {
+            'content-type': 'image/png',
+            'content-length': card.length,
+            'cache-control': 'public, max-age=86400',
+          });
+          response.end(card);
+        })
+        .catch((error: unknown) => {
+          console.error('Share card render failed', error);
+          sendJson(response, 500, { error: 'Share card could not be rendered' });
+        });
+      return;
+    }
+
+    const shareMatch = request.url?.match(/^\/share\/([a-zA-Z0-9_-]+)$/);
+    if (request.method === 'GET' && shareMatch?.[1]) {
+      const result = sharedResults.get(shareMatch[1]);
+      if (!result) {
+        sendJson(response, 404, { error: 'Shared result not found' });
+        return;
+      }
+
+      const forwardedProto = request.headers['x-forwarded-proto'];
+      const protocol =
+        (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto) ?? 'https';
+      const host = request.headers.host ?? 'localhost';
+      const origin = `${protocol}://${host}`;
+      const title = `Stack score: ${result.score}/100 · Dr. Gordon Pelican`;
+      const cardUrl = `${origin}/card/${shareMatch[1]}`;
+      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      response.end(`<!doctype html>
+        <html lang="en"><head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>${escapeHtml(title)}</title>
+          <meta property="og:type" content="website">
+          <meta property="og:title" content="${escapeHtml(title)}">
+          <meta property="og:description" content="${escapeHtml(result.roast)}">
+          <meta property="og:image" content="${escapeHtml(cardUrl)}">
+          <meta name="twitter:card" content="summary_large_image">
+          <meta name="twitter:image" content="${escapeHtml(cardUrl)}">
+          <meta http-equiv="refresh" content="0;url=/">
+        </head><body><a href="/">View the full review</a></body></html>`);
+      return;
+    }
+
     if (request.method === 'POST' && request.url === '/roast') {
       void (async () => {
         try {
@@ -139,7 +223,8 @@ export function createServer(
           const detections = dependencies.detectStack(snapshot);
           const score = dependencies.scoreStack(detections);
           const result = await dependencies.roast(detections, score.score, score.band);
-          sendJson(response, 200, result);
+          const shareId = rememberResult(result);
+          sendJson(response, 200, { ...result, shareId });
         } catch (error) {
           if (
             error instanceof SyntaxError ||

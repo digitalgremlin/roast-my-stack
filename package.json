@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "apify": "^3.4.4",
     "cheerio": "^1.2.0",
     "openai": "^5.23.2"

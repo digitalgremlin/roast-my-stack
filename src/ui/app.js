@@ -8,6 +8,7 @@ const band = document.querySelector('#band');
 const roast = document.querySelector('#roast');
 const detections = document.querySelector('#detections');
 const fixes = document.querySelector('#fixes');
+const shareLink = document.querySelector('#share-link');
 const submit = form.querySelector('button');
 
 const bandLabels = {
@@ -47,6 +48,8 @@ function render(data) {
   roast.textContent = data.roast;
   detections.replaceChildren(...data.detections.map(renderDetection));
   fixes.replaceChildren(...data.fixes.map(renderFix));
+  shareLink.href = `/share/${data.shareId}`;
+  shareLink.hidden = !data.shareId;
   result.hidden = false;
   result.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
