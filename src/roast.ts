@@ -87,6 +87,18 @@ export async function roast(
   band: Band,
   dependencies: RoastDependencies = {},
 ): Promise<RoastResult> {
+  if (detections.length === 0) {
+    return {
+      score,
+      band,
+      spriteId: band,
+      detections,
+      roast:
+        'Dr. Gordon Pelican cannot see enough of this stack to convene a proper examination. The technology has hidden its plumage—or the site declined to show its work.',
+      fixes: [],
+    };
+  }
+
   const client =
     dependencies.client ??
     (new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) as unknown as RoastClient);
@@ -117,6 +129,6 @@ export async function roast(
     spriteId: band,
     detections,
     roast: parsed.roast,
-    fixes: detections.length === 0 ? [] : fixes,
+    fixes,
   };
 }

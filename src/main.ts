@@ -5,7 +5,11 @@ import { createServer } from './server.js';
 await Actor.init();
 
 const port = Number(
-  process.env.APIFY_STANDBY_PORT ?? process.env.ACTOR_STANDBY_PORT ?? process.env.PORT ?? 3000,
+  process.env.ACTOR_WEB_SERVER_PORT ??
+    process.env.APIFY_STANDBY_PORT ??
+    process.env.ACTOR_STANDBY_PORT ??
+    process.env.PORT ??
+    3000,
 );
 const server = createServer();
 

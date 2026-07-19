@@ -45,6 +45,25 @@ describe('createServer', () => {
     expect(html).toContain('id="result"');
   });
 
+  it('preserves query-token authentication for browser assets and API calls', async () => {
+    const origin = await startServer();
+    const [pageResponse, scriptResponse] = await Promise.all([
+      fetch(origin),
+      fetch(`${origin}/app.js`),
+    ]);
+    const [html, script] = await Promise.all([
+      pageResponse.text(),
+      scriptResponse.text(),
+    ]);
+
+    expect(html).toContain('searchParams.get(\'token\')');
+    expect(html).toContain('import(authUrl(\'/app.js\'))');
+    expect(script).toContain('searchParams.get(\'token\')');
+    expect(script).toContain("fetch(authUrl('/roast')");
+    expect(script).toContain("pelican.src = authUrl(`/assets/sprites/");
+    expect(script).toContain("shareLink.href = authUrl(`/share/");
+  });
+
   it('serves mood sprites as PNG assets', async () => {
     const response = await fetch(
       `${await startServer()}/assets/sprites/pelican-ashes.png`,

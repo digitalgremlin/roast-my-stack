@@ -10,6 +10,13 @@ const detections = document.querySelector('#detections');
 const fixes = document.querySelector('#fixes');
 const shareLink = document.querySelector('#share-link');
 const submit = form.querySelector('button');
+const token = new URL(window.location.href).searchParams.get('token');
+
+function authUrl(path) {
+  const url = new URL(path, window.location.origin);
+  if (token) url.searchParams.set('token', token);
+  return `${url.pathname}${url.search}`;
+}
 
 const bandLabels = {
   impressed: 'Grudgingly impressed',
@@ -41,18 +48,20 @@ function renderFix(item) {
 }
 
 function render(data) {
-  pelican.src = `/assets/sprites/pelican-${data.spriteId}.png`;
+  pelican.src = authUrl(`/assets/sprites/pelican-${data.spriteId}.png`);
   pelican.alt = `Dr. Gordon Pelican is ${data.band}`;
   score.textContent = data.score;
   band.textContent = bandLabels[data.band] ?? data.band;
   roast.textContent = data.roast;
   detections.replaceChildren(...data.detections.map(renderDetection));
   fixes.replaceChildren(...data.fixes.map(renderFix));
-  shareLink.href = `/share/${data.shareId}`;
+  shareLink.href = authUrl(`/share/${data.shareId}`);
   shareLink.hidden = !data.shareId;
   result.hidden = false;
   result.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+pelican.src = authUrl('/assets/sprites/pelican-concerned.png');
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -62,7 +71,7 @@ form.addEventListener('submit', async (event) => {
   status.textContent = 'Dr. Pelican is peering down his beak at the evidence.';
 
   try {
-    const response = await fetch('/roast', {
+    const response = await fetch(authUrl('/roast'), {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ url: input.value }),

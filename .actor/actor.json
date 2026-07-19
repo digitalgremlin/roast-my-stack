@@ -14,5 +14,58 @@
     "schemaVersion": 1,
     "properties": {}
   },
-  "usesStandbyMode": false
+  "environmentVariables": {
+    "OPENAI_API_KEY": "@OPENAI_API_KEY",
+    "ROAST_MODEL": "gpt-5.6"
+  },
+  "webServerSchema": {
+    "openapi": "3.0.3",
+    "info": {
+      "title": "Roast My Stack API",
+      "version": "0.1.0"
+    },
+    "paths": {
+      "/health": {
+        "get": {
+          "summary": "Health check",
+          "responses": {
+            "200": {
+              "description": "Actor is healthy"
+            }
+          }
+        }
+      },
+      "/roast": {
+        "post": {
+          "summary": "Detect and roast a website's technology stack",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["url"],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Grounded Dr. Pelican roast"
+            },
+            "400": {
+              "description": "Invalid URL"
+            }
+          }
+        }
+      }
+    }
+  },
+  "usesStandbyMode": true
 }

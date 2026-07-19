@@ -51,6 +51,25 @@ describe('buildRoastMessages', () => {
 });
 
 describe('roast', () => {
+  it('returns a graceful no-signal roast without calling GPT', async () => {
+    const client = mockClient({
+      roast: 'This response must never be used.',
+      fixes: [],
+    });
+
+    const result = await roast([], 60, 'concerned', { client });
+
+    expect(result).toEqual({
+      score: 60,
+      band: 'concerned',
+      spriteId: 'concerned',
+      detections: [],
+      roast: expect.stringContaining('Dr. Gordon Pelican'),
+      fixes: [],
+    });
+    expect(client.chat.completions.create).not.toHaveBeenCalled();
+  });
+
   it('returns a mood-matched, grounded roast with three to five fixes', async () => {
     const client = mockClient({
       roast: 'WordPress, jQuery, and PHP have assembled a faculty meeting from 2012.',

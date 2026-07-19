@@ -205,8 +205,16 @@ export function createServer(
           <meta property="og:image" content="${escapeHtml(cardUrl)}">
           <meta name="twitter:card" content="summary_large_image">
           <meta name="twitter:image" content="${escapeHtml(cardUrl)}">
-          <meta http-equiv="refresh" content="0;url=/">
-        </head><body><a href="/">View the full review</a></body></html>`);
+        </head><body>
+          <a id="app-link" href="/">View the full review</a>
+          <script>
+            const token = new URL(window.location.href).searchParams.get('token');
+            if (token) {
+              const link = document.querySelector('#app-link');
+              link.href = '/?token=' + encodeURIComponent(token);
+            }
+          </script>
+        </body></html>`);
       return;
     }
 
