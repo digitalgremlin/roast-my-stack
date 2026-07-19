@@ -60,7 +60,7 @@ relationships. All five fetches returned HTTP 200 to both implementations.
 - 28 Vitest tests pass across fetch, detector, scoring, roast, server, and card.
 - `tsc --noEmit` passes.
 - Production dependency audit reports zero vulnerabilities.
-- Apify build 0.1.7 succeeded and is served by the active Standby run.
+- The exact tagged source build succeeded and is served by the active Standby run.
 - Live health, detected-stack roast, empty-stack fallback, share page, and PNG
   card checks pass with Apify Standby authentication.
 - The public actor is limited-permission and uses an Apify-stored OpenAI secret.
