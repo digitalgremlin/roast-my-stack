@@ -6,6 +6,8 @@ Primary model: GPT‑5.6
 
 Builder: Codex
 
+Primary Codex session ID: `019f77e1-6086-7fc2-8edf-3d6ad0a37307`
+
 ## Task record
 
 | Task | Codex work | Friction | Win | Verdict |
@@ -62,6 +64,13 @@ relationships. All five fetches returned HTTP 200 to both implementations.
 - Live health, detected-stack roast, empty-stack fallback, share page, and PNG
   card checks pass with Apify Standby authentication.
 - The public actor is limited-permission and uses an Apify-stored OpenAI secret.
+
+Apify’s direct Standby hostname requires an API token even for this public actor.
+The official client’s anonymous-runnable update was attempted and rejected by the
+platform schema. The app therefore preserves a token already supplied in its page
+URL for browser subrequests, while the Apify Standby tab handles authentication
+automatically. A fully anonymous social crawler cannot fetch the OG card without
+an Apify-side access-policy change; no token is embedded in OG metadata.
 
 ## Codex evaluation
 
