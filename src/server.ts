@@ -1,4 +1,6 @@
 import http, { type IncomingMessage, type ServerResponse } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 import { detectStack } from './detect.js';
 import { fetchTarget } from './fetch.js';
@@ -29,6 +31,24 @@ const DEFAULT_DEPENDENCIES: PipelineDependencies = {
 function sendJson(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
   response.end(JSON.stringify(body));
+}
+
+async function sendFile(
+  response: ServerResponse,
+  filePath: string,
+  contentType: string,
+): Promise<void> {
+  try {
+    const body = await readFile(filePath);
+    response.writeHead(200, {
+      'content-type': contentType,
+      'content-length': body.length,
+      'cache-control': contentType === 'image/png' ? 'public, max-age=86400' : 'no-cache',
+    });
+    response.end(body);
+  } catch {
+    sendJson(response, 404, { error: 'Not found' });
+  }
 }
 
 async function readJson(request: IncomingMessage): Promise<unknown> {
@@ -68,8 +88,41 @@ export function createServer(
     }
 
     if (request.method === 'GET' && request.url === '/') {
-      response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      response.end('<!doctype html><html><body>Roast My Stack — coming soon</body></html>');
+      void sendFile(
+        response,
+        path.join(process.cwd(), 'src/ui/index.html'),
+        'text/html; charset=utf-8',
+      );
+      return;
+    }
+
+    if (request.method === 'GET' && request.url === '/app.js') {
+      void sendFile(
+        response,
+        path.join(process.cwd(), 'src/ui/app.js'),
+        'text/javascript; charset=utf-8',
+      );
+      return;
+    }
+
+    if (request.method === 'GET' && request.url === '/styles.css') {
+      void sendFile(
+        response,
+        path.join(process.cwd(), 'src/ui/styles.css'),
+        'text/css; charset=utf-8',
+      );
+      return;
+    }
+
+    const spriteMatch = request.url?.match(
+      /^\/assets\/sprites\/(pelican-(?:impressed|smug|concerned|horrified|ashes)\.png)$/,
+    );
+    if (request.method === 'GET' && spriteMatch?.[1]) {
+      void sendFile(
+        response,
+        path.join(process.cwd(), 'assets/sprites', spriteMatch[1]),
+        'image/png',
+      );
       return;
     }
 

@@ -37,9 +37,22 @@ describe('createServer', () => {
 
   it('serves an HTML placeholder', async () => {
     const response = await fetch(await startServer());
+    const html = await response.text();
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
+    expect(html).toContain('id="roast-form"');
+    expect(html).toContain('id="result"');
+  });
+
+  it('serves mood sprites as PNG assets', async () => {
+    const response = await fetch(
+      `${await startServer()}/assets/sprites/pelican-ashes.png`,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('image/png');
+    expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(100);
   });
 
   it('runs the full roast pipeline and returns a RoastResult', async () => {
