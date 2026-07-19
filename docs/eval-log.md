@@ -35,7 +35,8 @@ response returned five grounded fixes.
 | `gpt-5.6-luna` | API denied | 0.3 s | — | The available key returned HTTP 401 insufficient permissions. |
 
 Verdict: keep Sol (`gpt-5.6`) for the submission because the product’s hook is
-the character voice. Terra is the best cost/latency candidate after Build Week.
+the character voice. Terra is the permission-denied fallback and the best
+cost/latency candidate after Build Week; it remains within the GPT‑5.6 family.
 
 ## Detector oracle diff
 

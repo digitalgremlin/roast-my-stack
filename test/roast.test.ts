@@ -135,4 +135,38 @@ describe('roast', () => {
     );
     expect(result.fixes).toHaveLength(3);
   });
+
+  it('retries with GPT-5.6 Terra only when Sol is permission-denied', async () => {
+    const client = mockClient({
+      roast: 'WordPress, jQuery, and PHP remain under qualified supervision.',
+      fixes: [
+        {
+          title: 'WordPress: patch extensions',
+          rationale: 'Reduce extension vulnerabilities.',
+          kind: 'security',
+        },
+        {
+          title: 'jQuery: remove legacy plugins',
+          rationale: 'Reduce aging browser-side code.',
+          kind: 'modernization',
+        },
+        {
+          title: 'PHP: use a supported release',
+          rationale: 'Receive current security patches.',
+          kind: 'security',
+        },
+      ],
+    });
+    const create = vi.mocked(client.chat.completions.create);
+    create.mockRejectedValueOnce(
+      Object.assign(new Error('insufficient permissions'), { status: 401 }),
+    );
+
+    const result = await roast(detections, 46, 'concerned', { client });
+
+    expect(result.fixes).toHaveLength(3);
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(create.mock.calls[0]?.[0]).toMatchObject({ model: 'gpt-5.6' });
+    expect(create.mock.calls[1]?.[0]).toMatchObject({ model: 'gpt-5.6-terra' });
+  });
 });

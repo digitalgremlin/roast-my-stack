@@ -104,7 +104,8 @@ database was imported.
 GPT‑5.6 performs one job at runtime: it turns the detected stack and deterministic
 score into Dr. Pelican’s roast plus structured fixes. A strict JSON schema and
 post-validation drop fixes that do not name detected technology. The default model
-is `gpt-5.6` (Sol); `ROAST_MODEL` supports explicit Terra/Luna evaluation.
+is `gpt-5.6` (Sol). If OpenAI denies Sol for model-tier permissions, the app makes
+one retry with `gpt-5.6-terra`; `ROAST_FALLBACK_MODEL` can override that tier.
 
 ## Architecture
 

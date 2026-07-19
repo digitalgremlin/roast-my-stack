@@ -103,7 +103,7 @@ export async function roast(
     dependencies.client ??
     (new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) as unknown as RoastClient);
   const model = dependencies.model ?? process.env.ROAST_MODEL ?? 'gpt-5.6';
-  const completion = await client.chat.completions.create({
+  const request = {
     model,
     messages: buildRoastMessages(detections, score, band),
     response_format: {
@@ -115,7 +115,22 @@ export async function roast(
       },
     },
     max_completion_tokens: 900,
-  });
+  };
+  let completion: RoastCompletion;
+  try {
+    completion = await client.chat.completions.create(request);
+  } catch (error) {
+    const status =
+      typeof error === 'object' && error !== null && 'status' in error
+        ? (error as { status?: unknown }).status
+        : undefined;
+    if (model !== 'gpt-5.6' || status !== 401) throw error;
+
+    completion = await client.chat.completions.create({
+      ...request,
+      model: process.env.ROAST_FALLBACK_MODEL ?? 'gpt-5.6-terra',
+    });
+  }
   const parsed = parseModelRoast(completion.choices[0]?.message.content ?? null);
   const fixes = parsed.fixes.filter((fix) => isGroundedFix(fix, detections)).slice(0, 5);
 
